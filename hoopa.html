@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pi Camera Stream Control</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 relative min-h-screen flex flex-col items-center justify-center text-center px-4">
+
+  <!-- Particle Background -->
+  <div id="particles-js" class="fixed w-full h-full -z-10"></div>
+
+  <!-- Camera Stream UI -->
+  <main class="bg-white shadow-lg rounded-lg p-6 max-w-xl w-full z-10">
+    <h1 class="text-3xl font-bold text-gray-800 mb-4">Raspberry Pi Camera Stream</h1>
+    <p class="text-gray-600 mb-6">Press <strong>Z</strong> to Start Streaming, <strong>C</strong> to Stop Streaming</p>
+
+    <img id="videoStream" src="" width="640" height="480" class="mx-auto border-4 border-gray-700 rounded-md mb-4 hidden" />
+    
+    <div id="status" class="text-lg font-semibold text-blue-700">Stream is OFF</div>
+  </main>
+
+  <!-- JS Scripts -->
+  <script>
+    const videoStream = document.getElementById('videoStream');
+    const statusText = document.getElementById('status');
+
+    function controlStream(command) {
+      fetch('/control_stream', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({command: command})
+      })
+      .then(response => response.json())
+      .then(data => {
+        if(data.streaming){
+          videoStream.src = '/video_feed';
+          videoStream.classList.remove('hidden');
+          statusText.textContent = "Stream is ON";
+        } else {
+          videoStream.src = '';
+          videoStream.classList.add('hidden');
+          statusText.textContent = "Stream is OFF";
+        }
+      });
+    }
+
+    // Listen for key presses
+    document.addEventListener('keydown', function(event) {
+      const key = event.key.toLowerCase();
+      if(key === 'z'){
+        controlStream('start');
+      } else if(key === 'c'){
+        controlStream('stop');
+      }
+    });
+
+    // Initialize with stream off
+    controlStream('stop');
+
+    // Particle.js configuration
+    particlesJS("particles-js", {
+      particles: {
+        number: { value: 100 },
+        size: { value: 3 },
+        move: { speed: 1 },
+        line_linked: { enable: true, distance: 150, color: "#888" },
+        opacity: { value: 0.6 },
+      },
+      interactivity: {
+        events: {
+          onhover: { enable: true, mode: "repulse" },
+          onclick: { enable: true, mode: "push" },
+        },
+      },
+    });
+  </script>
+
+</body>
+</html>
+
+
